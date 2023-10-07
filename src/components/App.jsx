@@ -12,15 +12,19 @@ import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import EditProfilePopup from "./EditProfilePopup";
 import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
-import SingIn from "./SingIn";
-import StatusPopup from "./StatusPopup";
+import Login from "./Login";
+import Register from "./Register";
+import InfoTooltip from "./InfoTooltip";
+import OK from "../images/status/OK.svg";
+import FAIL from "../images/status/FAIL.svg";
 
 function App() {
   const [isEditProfilePopupOpen, setProfilePopupState] = React.useState(false);
   const [isAddPlacePopupOpen, setAddCardPopupState] = React.useState(false);
   const [isEditAvatarPopupOpen, setAvatarPopupState] = React.useState(false);
   const [isImagePopupOpen, setImagePopupState] = React.useState(false);
-  const [statusOkPopupOpen, setStatusOkPopupOpen] =React.useState(false);
+  const [statusOkPopupOpen, setStatusOkPopupOpen] = React.useState(false);
+  const [statusFailPopupOpen, setStatusFailPopupOpen] = React.useState(false);
   const [selectedCard, setCardData] = React.useState({ src: "", title: "" });
   const [cards, setCards] = React.useState([]);
 
@@ -40,8 +44,12 @@ function App() {
     setCardData({ src: link, title: name });
   }
 
-  function handleOpenStatusOkPopup(){
-    setStatusOkPopupOpen(true)
+  function handleOpenStatusOkPopup() {
+    setStatusOkPopupOpen(true);
+  }
+
+  function handleOpenStatusFailPopup() {
+    setStatusFailPopupOpen(true);
   }
 
   function handleOpenProfilePopup() {
@@ -61,6 +69,7 @@ function App() {
     setAddCardPopupState(false);
     setAvatarPopupState(false);
     setStatusOkPopupOpen(false);
+    setStatusFailPopupOpen(false);
   }
 
   //устанавливаем новый контекст и отправляем данные на сервер
@@ -137,7 +146,7 @@ function App() {
             path="/"
             element={
               <>
-                <Header button='Выйти'/>
+                <Header button="Выйти" />
                 <Main
                   onCardDelete={handleCardDelete}
                   onCardLike={handleLike}
@@ -184,15 +193,57 @@ function App() {
               </>
             }
           />
-          <Route path="/sing-in" element={
-            <>
-              <SingIn submit={handleOpenStatusOkPopup}/>
-              <StatusPopup isOpen={statusOkPopupOpen} onClose={closeAllPopups} name='status-ok'/>
-            </>
-            } 
+          <Route
+            path="/sing-in"
+            element={
+              <>
+                <Login
+                  submit={/*handleOpenStatusOkPopup*/ handleOpenStatusFailPopup}
+                />
+                <InfoTooltip
+                  isOpen={statusOkPopupOpen}
+                  onClose={closeAllPopups}
+                  image={OK}
+                  title="Вы успешно зарегистрировались!"
+                  name="status-ok"
+                />
+                <InfoTooltip
+                  isOpen={statusFailPopupOpen}
+                  onClose={closeAllPopups}
+                  image={FAIL}
+                  title="Что-то пошло не так!
+                  Попробуйте ещё раз."
+                  name="status-fail"
+                />
+              </>
+            }
           />
-          <Route path="/sing-up" /* element={<SingUp />} *//>
-          <Route path="*" /* element={<NotFoundPage />} *//>
+          <Route
+            path="/sing-up"
+            element={
+              <>
+                <Register
+                  submit={/*handleOpenStatusOkPopup*/ handleOpenStatusFailPopup}
+                />
+                <InfoTooltip
+                  isOpen={statusOkPopupOpen}
+                  onClose={closeAllPopups}
+                  image={OK}
+                  title="Вы успешно зарегистрировались!"
+                  name="status-ok"
+                />
+                <InfoTooltip
+                  isOpen={statusFailPopupOpen}
+                  onClose={closeAllPopups}
+                  image={FAIL}
+                  title="Что-то пошло не так!
+                            Попробуйте ещё раз."
+                  name="status-fail"
+                />
+              </>
+            }
+          />
+          <Route path="*" /* element={<NotFoundPage />} */ />
         </Routes>
       </div>
     </CurrentUserContext.Provider>

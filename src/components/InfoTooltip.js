@@ -1,6 +1,6 @@
-import OK from './OK.svg'
 
-function StatusPopup({ onClose, isOpen, name, title }) {
+
+function InfoTooltip({ onClose, isOpen, name, title, image }) {
   return (
     <div
       className={`popup popup-${name} ${isOpen ? "popup_opened" : ""}`}
@@ -12,11 +12,11 @@ function StatusPopup({ onClose, isOpen, name, title }) {
           className="popup__exit"
           onClick={onClose}
         ></button>
-        <h2 className="popup__title">{title}</h2>
-        <img src={OK} />
+        <img className="popup__status-image" src={image} />
+        {title ? <h2 className='popup__status-title'>{title}</h2> : <></>}
       </div>
     </div>
   );
 }
 
-export default StatusPopup;
+export default InfoTooltip;

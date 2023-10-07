@@ -6,6 +6,7 @@
 @import url(./blocks/login-registration-form/__title/login-registration-form__title.css);
 @import url(./blocks/login-registration-form/__input/login-registration-form__input.css);
 @import url(./blocks/login-registration-form/__submit/login-registration-form__submit.css);
+@import url(./blocks/login-registration-form/__back-to-login/login-registration-form__back-to-login.css);
 
 @import url(./blocks/header/header.css);
 @import url(./blocks/header/__logo/header__logo.css);
@@ -53,6 +54,8 @@
 @import url(./blocks/form/__input-error/_active/form__input-error_active.css);
 @import url(./blocks/form/__submit/_disabled/form__submit_disbled.css);
 @import url(./blocks/popup/__avatar/popup__avatar.css);
+@import url(./blocks/popup/__status-image/popup__status-image.css);
+@import url(./blocks/popup/__status-title/popup__status-title.css);
 
 @import url(./blocks/popup-picture/popup-picture.css);
 @import url(./blocks/popup-picture/__container/popup-picture__container.css);
