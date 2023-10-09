@@ -14,10 +14,15 @@ function Login(props) {
     setPassword(e.target.value);
   }
 
+  function handleSubmit(e) {
+    e.preventDefault()
+    props.submit(email, password)
+  }
+
   return (
     <>
       <Header button="Регистрация" />
-      <LogRegForm title="Вход" submitButtonText='Войти' submit={props.submit}>
+      <LogRegForm title="Вход" submitButtonText='Войти' submit={handleSubmit}>
         <LogRegInput
           id='email'
           value={email}

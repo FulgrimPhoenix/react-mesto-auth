@@ -85,7 +85,36 @@ class Api{
     })
     .then(this._checkResponse);
   }
+  registration(email, password){
+    return fetch ('https://auth.nomoreparties.co/signup',{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "password": password,
+        "email": email
+      })
+    })
+    .then(this._checkResponse);
+  }
+
+  login(email, password){
+    return fetch ('https://auth.nomoreparties.co/signin',{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "password": password,
+        "email": email
+      })
+    })
+    .then(this._checkResponse);
+  }
 }
+
+  
 
 const api = new Api({
   baseUrl: 'https://auth.nomoreparties.co/v1/cohort-73/',

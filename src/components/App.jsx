@@ -48,6 +48,19 @@ function App() {
     setStatusOkPopupOpen(true);
   }
 
+  function handleSingUp(email, password){
+    api.registration(email, password)
+      .then((res) => {console.log(res);})
+      .catch(err => console.log(err))
+    handleOpenStatusOkPopup()
+  }
+
+  function handleSingIn(email, password){
+    api.login(email, password)
+      .then((res) => {console.log(res); handleOpenStatusOkPopup()})
+      .catch(err => {console.log(err); handleOpenStatusFailPopup()})
+  }
+
   function handleOpenStatusFailPopup() {
     setStatusFailPopupOpen(true);
   }
@@ -198,7 +211,7 @@ function App() {
             element={
               <>
                 <Login
-                  submit={/*handleOpenStatusOkPopup*/ handleOpenStatusFailPopup}
+                  submit={handleSingIn}
                 />
                 <InfoTooltip
                   isOpen={statusOkPopupOpen}
@@ -223,7 +236,7 @@ function App() {
             element={
               <>
                 <Register
-                  submit={/*handleOpenStatusOkPopup*/ handleOpenStatusFailPopup}
+                  submit={handleSingUp}
                 />
                 <InfoTooltip
                   isOpen={statusOkPopupOpen}
