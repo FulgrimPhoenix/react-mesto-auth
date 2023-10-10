@@ -61,6 +61,14 @@ function App() {
   function handleOpenAvatarPopup() {
     setAvatarPopupState(true);
   }
+  //регистрация
+  function registration(email, password){
+    api.register(email, password)
+      .then(() => handleOpenStatusOkPopup())
+      .catch((err) => {
+
+      })
+  }
   //закрываем все модальные окна
   function closeAllPopups() {
     setCardData({ src: "", title: "" });
@@ -223,7 +231,7 @@ function App() {
             element={
               <>
                 <Register
-                  submit={/*handleOpenStatusOkPopup*/ handleOpenStatusFailPopup}
+                  submit={registration}
                 />
                 <InfoTooltip
                   isOpen={statusOkPopupOpen}

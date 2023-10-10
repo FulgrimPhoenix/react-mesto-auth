@@ -85,6 +85,35 @@ class Api{
     })
     .then(this._checkResponse);
   }
+  register(email, password){
+    return fetch(`https://auth.nomoreparties.co/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "password": `${password}`,
+        "email": `${email}`
+      })
+    })
+    .then(this._checkResponse)
+    .then((res) => console.log(res))
+  }
+  singin(email, password){
+    return fetch(`https://auth.nomoreparties.co/signin`, {
+      method: 'POST',
+      headers: {
+        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "password": `${password}`,
+        "email": `${email}`
+      })
+    })
+    .then(this._checkResponse)
+    .then((res) => console.log(res))
+  }
 }
 
 const api = new Api({
