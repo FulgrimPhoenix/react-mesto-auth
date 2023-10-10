@@ -1,4 +1,4 @@
-import { Children } from 'react';
+import { Link } from 'react-router-dom';
 import logo from '../images/logo/logo.svg';
 
 function Header({button, children}){
@@ -7,7 +7,6 @@ function Header({button, children}){
       <img className="header__logo" src={logo} alt="логотип" />
       <div className='header__menu'>
         {children}
-        <a href='#' className='header__button'>{button}</a>
       </div>
     </header>
   )

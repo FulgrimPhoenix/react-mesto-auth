@@ -1,5 +1,5 @@
 import "../App.css";
-import { Route, Routes, Link } from "react-router-dom";
+import { Route, Routes, Link, useNavigate } from "react-router-dom";
 import React from "react";
 import Header from "./Header.js";
 import Main from "./Main.js";
@@ -17,6 +17,7 @@ import Register from "./Register";
 import InfoTooltip from "./InfoTooltip";
 import OK from "../images/status/OK.svg";
 import FAIL from "../images/status/FAIL.svg";
+import ProtectedRoute from "./ProtectedRoute";
 
 function App() {
   const [isEditProfilePopupOpen, setProfilePopupState] = React.useState(false);
@@ -27,8 +28,10 @@ function App() {
   const [statusFailPopupOpen, setStatusFailPopupOpen] = React.useState(false);
   const [selectedCard, setCardData] = React.useState({ src: "", title: "" });
   const [cards, setCards] = React.useState([]);
-
+  const [loggedIn, setLoggedInState] = React.useState(false);
   const [currentUser, setUserData] = React.useState({});
+
+  const navigate = useNavigate();
   //загрузка исходной информации
   React.useEffect(() => {
     Promise.all([api.getMyUserInfo(), api.getCardsInfo()])
@@ -48,17 +51,41 @@ function App() {
     setStatusOkPopupOpen(true);
   }
 
-  function handleSingUp(email, password){
-    api.registration(email, password)
-      .then((res) => {console.log(res);})
-      .catch(err => console.log(err))
-    handleOpenStatusOkPopup()
+  function handleSingUp(email, password) {
+    api
+      .registrate(email, password)
+      .then((res) => {
+        console.log(res);
+        handleOpenStatusOkPopup();
+      })
+      .catch((err) => {
+        console.log(err);
+        handleOpenStatusFailPopup();
+      });
   }
 
-  function handleSingIn(email, password){
-    api.login(email, password)
-      .then((res) => {console.log(res); handleOpenStatusOkPopup()})
-      .catch(err => {console.log(err); handleOpenStatusFailPopup()})
+  function handleSingIn(email, password) {
+    api
+      .login(email, password)
+      .then((res) => {
+        console.log(res.token);
+        localStorage.setItem("jwt", `${res.token}`);
+        handleAuthorization();
+        navigate("/", { replace: true });
+      })
+      .then(() => {
+        api
+          .checkToken(localStorage.getItem("jwt"))
+          .then((res) => console.log(res));
+      })
+      .catch((err) => {
+        console.log(err);
+        handleOpenStatusFailPopup();
+      });
+  }
+
+  function handleAuthorization() {
+    setLoggedInState(!loggedIn);
   }
 
   function handleOpenStatusFailPopup() {
@@ -158,61 +185,64 @@ function App() {
           <Route
             path="/"
             element={
-              <>
-                <Header button="Выйти" />
-                <Main
-                  onCardDelete={handleCardDelete}
-                  onCardLike={handleLike}
-                  card={cards}
-                  setCardData={handleOpenImagePopup}
-                  onEditProfile={handleOpenProfilePopup}
-                  onAddPlace={handleOpenAddCardPopup}
-                  onEditAvatar={handleOpenAvatarPopup}
-                />
-                <Footer />
-                <EditProfilePopup
-                  isOpen={isEditProfilePopupOpen}
-                  onClose={closeAllPopups}
-                  onUpdateUser={handleUpdateUser}
-                />
-                <AddPlacePopup
-                  isOpen={isAddPlacePopupOpen}
-                  onClose={closeAllPopups}
-                  onAddPlace={handleAddPlaceSubmit}
-                />
-                <EditAvatarPopup
-                  isOpen={isEditAvatarPopupOpen}
-                  onClose={closeAllPopups}
-                  onUpdateAvatar={handleUpdateAvatar}
-                />
-                <PopupWithForm
-                  key={`deleteCard`}
-                  name="delete-card"
-                  title="Вы уверены?"
-                  test={
-                    <Form
-                      key={`deleteCardPopup`}
-                      name={`deleteCardPopup`}
-                      submitButtonText="Да"
+              <ProtectedRoute
+                loggedIn={loggedIn}
+                element={
+                  <>
+                    <Header button="Выйти" />
+                    <Main
+                      onCardDelete={handleCardDelete}
+                      onCardLike={handleLike}
+                      card={cards}
+                      setCardData={handleOpenImagePopup}
+                      onEditProfile={handleOpenProfilePopup}
+                      onAddPlace={handleOpenAddCardPopup}
+                      onEditAvatar={handleOpenAvatarPopup}
                     />
-                  }
-                />
-                <ImagePopup
-                  key={`ImagePopup`}
-                  card={selectedCard}
-                  isOpen={isImagePopupOpen}
-                  onClose={closeAllPopups}
-                />
-              </>
+                    <Footer />
+                    <EditProfilePopup
+                      isOpen={isEditProfilePopupOpen}
+                      onClose={closeAllPopups}
+                      onUpdateUser={handleUpdateUser}
+                    />
+                    <AddPlacePopup
+                      isOpen={isAddPlacePopupOpen}
+                      onClose={closeAllPopups}
+                      onAddPlace={handleAddPlaceSubmit}
+                    />
+                    <EditAvatarPopup
+                      isOpen={isEditAvatarPopupOpen}
+                      onClose={closeAllPopups}
+                      onUpdateAvatar={handleUpdateAvatar}
+                    />
+                    <PopupWithForm
+                      key={`deleteCard`}
+                      name="delete-card"
+                      title="Вы уверены?"
+                      test={
+                        <Form
+                          key={`deleteCardPopup`}
+                          name={`deleteCardPopup`}
+                          submitButtonText="Да"
+                        />
+                      }
+                    />
+                    <ImagePopup
+                      key={`ImagePopup`}
+                      card={selectedCard}
+                      isOpen={isImagePopupOpen}
+                      onClose={closeAllPopups}
+                    />
+                  </>
+                }
+              />
             }
           />
           <Route
-            path="/sing-in"
+            path="/signin"
             element={
               <>
-                <Login
-                  submit={handleSingIn}
-                />
+                <Login submit={handleSingIn} />
                 <InfoTooltip
                   isOpen={statusOkPopupOpen}
                   onClose={closeAllPopups}
@@ -232,12 +262,10 @@ function App() {
             }
           />
           <Route
-            path="/sing-up"
+            path="/signup"
             element={
               <>
-                <Register
-                  submit={handleSingUp}
-                />
+                <Register submit={handleSingUp} />
                 <InfoTooltip
                   isOpen={statusOkPopupOpen}
                   onClose={closeAllPopups}
