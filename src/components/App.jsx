@@ -18,6 +18,7 @@ import Register from "./Register";
 import InfoTooltip from "./InfoTooltip";
 import OK from "../images/status/OK.svg";
 import FAIL from "../images/status/FAIL.svg";
+import NotFoundPage from "./NotFoundPage";
 
 function App() {
   const [isEditProfilePopupOpen, setProfilePopupState] = React.useState(false);
@@ -28,20 +29,24 @@ function App() {
   const [statusFailPopupOpen, setStatusFailPopupOpen] = React.useState(false);
   const [selectedCard, setCardData] = React.useState({ src: "", title: "" });
   const [cards, setCards] = React.useState([]);
-  const [loggedIn, setLoggedInState] = React.useState(true);
+  const [loggedIn, setLoggedInState] = React.useState(false);
   const [currentUser, setUserData] = React.useState({});
+  const [currentUserEmail, setCurrentUserEmail] = React.useState('');
+  const [currentUserId, setCurrentUserId] = React.useState('')
 
   const navigate = useNavigate();
 
   //загрузка исходной информации
   React.useEffect(() => {
-    Promise.all([api.getMyUserInfo(localStorage.getItem('jwt')), api.getCardsInfo(localStorage.getItem('jwt'))])
-      .then(([userInfo, cardList]) => {
-        setUserData(userInfo.data);
-        setCards(cardList.data);
+    Promise.all([api.getMyUserInfo(localStorage.getItem('jwt')), api.getCardsInfo(localStorage.getItem('jwt')), api.checkToken(localStorage.getItem('jwt'))])
+      .then(([userInfo, cardList, currentUser]) => {
+        setUserData(userInfo);
+        setCards(cardList);
+        setCurrentUserEmail(currentUser.data.email);
+        setCurrentUserId(currentUser.data._id);
       })
       .catch((err) => console.log(err));
-  }, []);
+  });
   function handleOpenImagePopup({ name, link }) {
     setImagePopupState(true);
     setCardData({ src: link, title: name });
@@ -53,8 +58,7 @@ function App() {
   function handleSingUp(email, password) {
     api
       .registrate(email, password, localStorage.getItem('jwt'))
-      .then((res) => {
-        console.log(res);
+      .then(() => {
         handleOpenStatusOkPopup();
       })
       .catch((err) => {
@@ -63,17 +67,21 @@ function App() {
       });
   }
 
+  function deleteJwt() {
+    localStorage.removeItem('jwt')
+    console.log(localStorage.getItem('jwt'))
+  }
+
   function handleSingIn(email, password) {
     api
       .login(email, password, localStorage.getItem('jwt'))
       .then((res) => {
         localStorage.setItem("jwt", `${res.token}`);
         handleAuthorization();
-        navigate("/", {replace: true})
-        console.log('yes');
+        navigate("/", { replace: true })
         api
-        .checkToken(localStorage.getItem('jwt'))
-        
+          .checkToken(localStorage.getItem('jwt'))
+          .then((res) => setCurrentUserEmail(res.data.email))
       })
       .catch((err) => {
         console.log(err);
@@ -81,7 +89,7 @@ function App() {
       });
   }
   function handleAuthorization() {
-    setLoggedInState(!loggedIn);
+    setLoggedInState(true);
   }
   function handleOpenStatusFailPopup() {
     setStatusFailPopupOpen(true);
@@ -146,21 +154,21 @@ function App() {
 
     !isLiked
       ? api
-          .likeThisCard(card._id, localStorage.getItem('jwt'))
-          .then((newCard) => {
-            setCards((state) =>
-              state.map((c) => (c._id === card._id ? newCard : c))
-            );
-          })
-          .catch((err) => console.log(err))
+        .likeThisCard(card._id, localStorage.getItem('jwt'))
+        .then((newCard) => {
+          setCards((state) =>
+            state.map((c) => (c._id === card._id ? newCard : c))
+          );
+        })
+        .catch((err) => console.log(err))
       : api
-          .unLikeThisCard(card._id, localStorage.getItem('jwt'))
-          .then((newCard) => {
-            setCards((state) =>
-              state.map((c) => (c._id === card._id ? newCard : c))
-            );
-          })
-          .catch((err) => console.log(err));
+        .unLikeThisCard(card._id, localStorage.getItem('jwt'))
+        .then((newCard) => {
+          setCards((state) =>
+            state.map((c) => (c._id === card._id ? newCard : c))
+          );
+        })
+        .catch((err) => console.log(err));
   }
   //функция добавления карточки
   function handleAddPlaceSubmit(name, link) {
@@ -176,11 +184,16 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<ProtectedRouteElement loggedIn={loggedIn} />}
+            element={<ProtectedRouteElement loggedIn={localStorage.getItem('jwt')} />}
           >
             <Route path="/" element={
-                <div>
-                <Header button="Выйти" />
+              <div>
+                <Header>
+                  <Link to='signin' onClick={deleteJwt} className="header__button" replace>
+                    {'Выйти'}
+                  </Link>
+                  <p className="header__email">{currentUserEmail}</p>
+                </Header>
                 <Main
                   onCardDelete={handleCardDelete}
                   onCardLike={handleLike}
@@ -225,7 +238,8 @@ function App() {
                   onClose={closeAllPopups}
                 />
               </div>
-            }/>
+            } />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
           <Route
             path="/signin"
@@ -273,7 +287,6 @@ function App() {
               </>
             }
           />
-          <Route path="*" /* element={<NotFoundPage />} */ />
         </Routes>
       </div>
     </CurrentUserContext.Provider>
