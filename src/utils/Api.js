@@ -1,7 +1,8 @@
 class Api {
-  constructor({ baseUrl, authUrl }) {
+  constructor({ baseUrl, authUrl, auth }) {
     this._url = baseUrl;
     this._authUrl = authUrl;
+    this._auth = auth;
   }
 
   _checkResponse(res) {
@@ -11,105 +12,77 @@ class Api {
     return Promise.reject(`Ошибка: ${res.status}`);
   }
 
+  _request(url, options) {
+    // принимает два аргумента: урл и объект опций, как и `fetch`
+    return fetch(url, options).then(this._checkResponse);
+  }
+
   getCardsInfo() {
-    return fetch(this._url + "cards", {
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      }
-    }).then(this._checkResponse);
+    return this._request(this._url + "cards", { headers: this._auth });
   }
 
   getMyUserInfo() {
-    return fetch(this._url + "users/me", {
+    return this._request(this._url + "users/me", {
       method: "GET",
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      }
-    }).then(this._checkResponse);
+      headers: this._auth,
+    });
   }
 
   editProfileInfo(name, about) {
-    return fetch(this._url + "users/me", {
+    return this._request(this._url + "users/me", {
       method: "PATCH",
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      },
+      headers: this._auth,
       body: JSON.stringify({
         name: name,
         about: about,
-      }),
-    }).then(this._checkResponse);
+      })
+    })
   }
 
   addNewCard(name, link) {
-    return fetch(this._url + "cards", {
+    return this._request(this._url + "cards", {
       method: "POST",
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      },
+      headers: this._auth,
       body: JSON.stringify({
         name: name,
         link: link,
-      }),
-    }).then(this._checkResponse);
+      })
+    })
   }
 
   deleteCard(id) {
-    return fetch(this._url + "cards/" + id, {
+    return this._request(this._url + "cards/" + id, {
       method: "DELETE",
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      }
-    }).then(this._checkResponse);
+      headers: this._auth
+    })
   }
 
   likeThisCard(id) {
-    return fetch(this._url + "cards/" + id + "/likes", {
+    return this._request(this._url + "cards/" + id + "/likes", {
       method: "PUT",
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      }
-    }).then(this._checkResponse);
+      headers: this._auth
+    })
   }
 
   unLikeThisCard(id) {
-    return fetch(this._url + "cards/" + id + "/likes", {
+    return this._request(this._url + "cards/" + id + "/likes", {
       method: "DELETE",
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      }
-    }).then(this._checkResponse);
+      headers: this._auth
+    })
   }
 
   updateAvatar(link) {
-    return fetch(this._url + "users/me/avatar", {
+    return this._request(this._url + "users/me/avatar", {
       method: "PATCH",
-      headers:
-      {
-        authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-        'Content-Type': 'application/json'
-      },
+      headers: this._auth,
       body: JSON.stringify({
         avatar: link,
-      }),
-    }).then(this._checkResponse);
+      })
+    })
   }
+
   registrate(email, password) {
-    return fetch(this._authUrl + "signup", {
+    return this._request(this._authUrl + "signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -117,12 +90,12 @@ class Api {
       body: JSON.stringify({
         password: `${password}`,
         email: `${email}`,
-      }),
-    }).then(this._checkResponse);
+      })
+    })
   }
 
-  login(email, password, JWT) {
-    return fetch(this._authUrl + "signin", {
+  login(email, password) {
+    return this._request(this._authUrl + "signin", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -130,25 +103,27 @@ class Api {
       body: JSON.stringify({
         password: password,
         email: email,
-      }),
-    }).then(this._checkResponse);
+      })
+    })
   }
   checkToken(JWT) {
-    return fetch(this._authUrl + "users/me", {
+    return this._request(this._authUrl + "users/me", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        'Authorization': `Bearer ${JWT}`,
-      },
-    }).then(this._checkResponse);
+        Authorization: `Bearer ${JWT}`,
+      }
+    })
   }
 }
 
-
 const api = new Api({
-  baseUrl: 'https://nomoreparties.co/v1/cohort-73/',
-  authUrl: 'https://auth.nomoreparties.co/',
-})
-
+  baseUrl: "https://nomoreparties.co/v1/cohort-73/",
+  authUrl: "https://auth.nomoreparties.co/",
+  auth: {
+    authorization: "aeff4cf2-7ae0-4790-a6f0-e4391c199a3c",
+    "Content-Type": "application/json",
+  },
+});
 
 export default api;

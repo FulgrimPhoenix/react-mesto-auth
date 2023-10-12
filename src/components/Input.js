@@ -7,7 +7,7 @@ function Input(
     <>
       <input
         type="text"
-        id={id}
+        name={id}
         value={value || ''}
         onChange={getValue}
         className={`form__input form__input_${id} popup__input`}

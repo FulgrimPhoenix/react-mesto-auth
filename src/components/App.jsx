@@ -46,7 +46,7 @@ function App() {
         setCurrentUserId(currentUser.data._id);
       })
       .catch((err) => console.log(err));
-  });
+  }, []);
   function handleOpenImagePopup({ name, link }) {
     setImagePopupState(true);
     setCardData({ src: link, title: name });
@@ -69,7 +69,6 @@ function App() {
 
   function deleteJwt() {
     localStorage.removeItem('jwt')
-    console.log(localStorage.getItem('jwt'))
   }
 
   function handleSingIn(email, password) {
@@ -194,7 +193,7 @@ function App() {
                   </Link>
                   <p className="header__email">{currentUserEmail}</p>
                 </Header>
-                <Main
+{                <Main
                   onCardDelete={handleCardDelete}
                   onCardLike={handleLike}
                   card={cards}
@@ -202,7 +201,7 @@ function App() {
                   onEditProfile={handleOpenProfilePopup}
                   onAddPlace={handleOpenAddCardPopup}
                   onEditAvatar={handleOpenAvatarPopup}
-                />
+                />}
                 <Footer />
                 <EditProfilePopup
                   isOpen={isEditProfilePopupOpen}
