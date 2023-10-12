@@ -1,5 +1,6 @@
 import "../App.css";
-import { Route, Routes, Link } from "react-router-dom";
+import { Route, Routes, Link, useNavigate } from "react-router-dom";
+import { ProtectedRouteElement } from "./ProtectedRouteElement";
 import React from "react";
 import Header from "./Header.js";
 import Main from "./Main.js";
@@ -17,6 +18,7 @@ import Register from "./Register";
 import InfoTooltip from "./InfoTooltip";
 import OK from "../images/status/OK.svg";
 import FAIL from "../images/status/FAIL.svg";
+import NotFoundPage from "./NotFoundPage";
 
 function App() {
   const [isEditProfilePopupOpen, setProfilePopupState] = React.useState(false);
@@ -27,31 +29,70 @@ function App() {
   const [statusFailPopupOpen, setStatusFailPopupOpen] = React.useState(false);
   const [selectedCard, setCardData] = React.useState({ src: "", title: "" });
   const [cards, setCards] = React.useState([]);
-
+  const [loggedIn, setLoggedInState] = React.useState(false);
   const [currentUser, setUserData] = React.useState({});
+  const [currentUserEmail, setCurrentUserEmail] = React.useState('');
+  const [currentUserId, setCurrentUserId] = React.useState('')
+
+  const navigate = useNavigate();
+
   //загрузка исходной информации
   React.useEffect(() => {
-    Promise.all([api.getMyUserInfo(), api.getCardsInfo()])
-      .then(([userInfo, cardList]) => {
+    Promise.all([api.getMyUserInfo(localStorage.getItem('jwt')), api.getCardsInfo(localStorage.getItem('jwt')), api.checkToken(localStorage.getItem('jwt'))])
+      .then(([userInfo, cardList, currentUser]) => {
         setUserData(userInfo);
         setCards(cardList);
+        setCurrentUserEmail(currentUser.data.email);
+        setCurrentUserId(currentUser.data._id);
       })
       .catch((err) => console.log(err));
   }, []);
-
   function handleOpenImagePopup({ name, link }) {
     setImagePopupState(true);
     setCardData({ src: link, title: name });
   }
-
   function handleOpenStatusOkPopup() {
     setStatusOkPopupOpen(true);
   }
 
+  function handleSingUp(email, password) {
+    api
+      .registrate(email, password, localStorage.getItem('jwt'))
+      .then(() => {
+        handleOpenStatusOkPopup();
+      })
+      .catch((err) => {
+        console.log(err);
+        handleOpenStatusFailPopup();
+      });
+  }
+
+  function deleteJwt() {
+    localStorage.removeItem('jwt')
+  }
+
+  function handleSingIn(email, password) {
+    api
+      .login(email, password, localStorage.getItem('jwt'))
+      .then((res) => {
+        localStorage.setItem("jwt", `${res.token}`);
+        handleAuthorization();
+        navigate("/", { replace: true })
+        api
+          .checkToken(localStorage.getItem('jwt'))
+          .then((res) => setCurrentUserEmail(res.data.email))
+      })
+      .catch((err) => {
+        console.log(err);
+        handleOpenStatusFailPopup();
+      });
+  }
+  function handleAuthorization() {
+    setLoggedInState(true);
+  }
   function handleOpenStatusFailPopup() {
     setStatusFailPopupOpen(true);
   }
-
   function handleOpenProfilePopup() {
     setProfilePopupState(true);
   }
@@ -60,14 +101,6 @@ function App() {
   }
   function handleOpenAvatarPopup() {
     setAvatarPopupState(true);
-  }
-  //регистрация
-  function registration(email, password){
-    api.register(email, password)
-      .then(() => handleOpenStatusOkPopup())
-      .catch((err) => {
-
-      })
   }
   //закрываем все модальные окна
   function closeAllPopups() {
@@ -79,11 +112,10 @@ function App() {
     setStatusOkPopupOpen(false);
     setStatusFailPopupOpen(false);
   }
-
   //устанавливаем новый контекст и отправляем данные на сервер
   function handleUpdateUser(name, about) {
     api
-      .editProfileInfo(name, about)
+      .editProfileInfo(name, about, localStorage.getItem('jwt'))
       .then((res) => {
         setUserData(res);
         closeAllPopups();
@@ -93,7 +125,7 @@ function App() {
   //функционал обновления аватара
   function handleUpdateAvatar(link) {
     api
-      .updateAvatar(link)
+      .updateAvatar(link, localStorage.getItem('jwt'))
       .then((res) => {
         setUserData(res);
         closeAllPopups();
@@ -104,7 +136,7 @@ function App() {
   //удаление карточки
   function handleCardDelete(id) {
     api
-      .deleteCard(id)
+      .deleteCard(id, localStorage.getItem('jwt'))
       .then(() => {
         setCards((cards) =>
           cards.filter((item) => {
@@ -121,27 +153,26 @@ function App() {
 
     !isLiked
       ? api
-          .likeThisCard(card._id)
-          .then((newCard) => {
-            setCards((state) =>
-              state.map((c) => (c._id === card._id ? newCard : c))
-            );
-          })
-          .catch((err) => console.log(err))
+        .likeThisCard(card._id, localStorage.getItem('jwt'))
+        .then((newCard) => {
+          setCards((state) =>
+            state.map((c) => (c._id === card._id ? newCard : c))
+          );
+        })
+        .catch((err) => console.log(err))
       : api
-          .unLikeThisCard(card._id)
-          .then((newCard) => {
-            setCards((state) =>
-              state.map((c) => (c._id === card._id ? newCard : c))
-            );
-          })
-          .catch((err) => console.log(err));
+        .unLikeThisCard(card._id, localStorage.getItem('jwt'))
+        .then((newCard) => {
+          setCards((state) =>
+            state.map((c) => (c._id === card._id ? newCard : c))
+          );
+        })
+        .catch((err) => console.log(err));
   }
-
   //функция добавления карточки
   function handleAddPlaceSubmit(name, link) {
     api
-      .addNewCard(name, link)
+      .addNewCard(name, link, localStorage.getItem('jwt'))
       .then((res) => setCards([res, ...cards]))
       .then(() => closeAllPopups())
       .catch((err) => console.log(err));
@@ -152,10 +183,17 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={
-              <>
-                <Header button="Выйти" />
-                <Main
+            element={<ProtectedRouteElement loggedIn={localStorage.getItem('jwt')} />}
+          >
+            <Route path="/" element={
+              <div>
+                <Header>
+                  <Link to='signin' onClick={deleteJwt} className="header__button" replace>
+                    {'Выйти'}
+                  </Link>
+                  <p className="header__email">{currentUserEmail}</p>
+                </Header>
+{                <Main
                   onCardDelete={handleCardDelete}
                   onCardLike={handleLike}
                   card={cards}
@@ -163,7 +201,7 @@ function App() {
                   onEditProfile={handleOpenProfilePopup}
                   onAddPlace={handleOpenAddCardPopup}
                   onEditAvatar={handleOpenAvatarPopup}
-                />
+                />}
                 <Footer />
                 <EditProfilePopup
                   isOpen={isEditProfilePopupOpen}
@@ -198,16 +236,15 @@ function App() {
                   isOpen={isImagePopupOpen}
                   onClose={closeAllPopups}
                 />
-              </>
-            }
-          />
+              </div>
+            } />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
           <Route
-            path="/sing-in"
+            path="/signin"
             element={
               <>
-                <Login
-                  submit={/*handleOpenStatusOkPopup*/ handleOpenStatusFailPopup}
-                />
+                <Login submit={handleSingIn} />
                 <InfoTooltip
                   isOpen={statusOkPopupOpen}
                   onClose={closeAllPopups}
@@ -227,12 +264,10 @@ function App() {
             }
           />
           <Route
-            path="/sing-up"
+            path="/signup"
             element={
               <>
-                <Register
-                  submit={registration}
-                />
+                <Register submit={handleSingUp} />
                 <InfoTooltip
                   isOpen={statusOkPopupOpen}
                   onClose={closeAllPopups}
@@ -251,7 +286,6 @@ function App() {
               </>
             }
           />
-          <Route path="*" /* element={<NotFoundPage />} */ />
         </Routes>
       </div>
     </CurrentUserContext.Provider>

@@ -1,27 +1,18 @@
 import PopupWithForm from "./PopupWithForm";
 import Input from "./Input";
 import React from "react";
+import useForm from "../hooks/useForm";
 
 function AddPlacePopup({ isOpen, onClose, onAddPlace }) {
-  const [name, setName] = React.useState("");
-  const [link, setLink] = React.useState("");
+  const { values, onChange, setValues } =  useForm([]);
 
   React.useEffect(() => {
-    setName('')
-    setLink('')
+    setValues([])
   }, [isOpen]);
-
-  function handleNameChange(e) {
-    setName(e.target.value);
-  }
-
-  function handleLinkChange(e) {
-    setLink(e.target.value);
-  }
 
   function handleSubmit(e) {
     e.preventDefault();
-    onAddPlace(name, link);
+    onAddPlace(values['field-title'], values["field-url"]);
   }
 
   return (
@@ -36,15 +27,15 @@ function AddPlacePopup({ isOpen, onClose, onAddPlace }) {
       <Input
         key={"field-title"}
         id="field-title"
-        value={name}
-        getValue={handleNameChange}
+        value={values['field-title']}
+        getValue={onChange}
         placeholder="Название"
       />
-      <Input
+        <Input
         key={"field-url"}
         id="field-url"
-        value={link}
-        getValue={handleLinkChange}
+        value={values["field-url"]}
+        getValue={onChange}
         placeholder="Ссылка на картинку"
       />
     </PopupWithForm>

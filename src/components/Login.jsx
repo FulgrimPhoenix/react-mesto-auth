@@ -2,6 +2,7 @@ import Header from "./Header";
 import LogRegForm from "./LogRegForm";
 import LogRegInput from "./LogRegInput";
 import React from "react";
+import { Link } from "react-router-dom";
 
 function Login(props) {
   const [email, setEmail] = React.useState("");
@@ -14,19 +15,28 @@ function Login(props) {
     setPassword(e.target.value);
   }
 
+  function handleSubmit(e) {
+    e.preventDefault();
+    props.submit(email, password);
+  }
+
   return (
     <>
-      <Header button="Регистрация" />
-      <LogRegForm title="Вход" submitButtonText='Войти' submit={props.submit}>
+      <Header>
+        <Link to="/signup" className="header__button">
+          {"Регистрация"}
+        </Link>
+      </Header>
+      <LogRegForm title="Вход" submitButtonText="Войти" submit={handleSubmit}>
         <LogRegInput
-          id='email'
+          id="email"
           value={email}
           onChange={handleEmail}
           placeholder="Email"
           type="email"
         />
         <LogRegInput
-          id='password'
+          id="password"
           value={password}
           onChange={handlePassword}
           placeholder="Пароль"

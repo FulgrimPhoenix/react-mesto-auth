@@ -1,7 +1,8 @@
-class Api{
-  constructor({baseUrl, authorization}){
+class Api {
+  constructor({ baseUrl, authUrl, auth }) {
     this._url = baseUrl;
-    this._authorization = authorization;
+    this._authUrl = authUrl;
+    this._auth = auth;
   }
 
   _checkResponse(res) {
@@ -11,79 +12,108 @@ class Api{
     return Promise.reject(`Ошибка: ${res.status}`);
   }
 
-
-  getCardsInfo(){
-    return fetch(this._url + 'cards', {
-        headers: this._authorization
-        })
-        .then(this._checkResponse)
+  _request(url, options) {
+    // принимает два аргумента: урл и объект опций, как и `fetch`
+    return fetch(url, options).then(this._checkResponse);
   }
 
-  getMyUserInfo(){
-    return fetch(this._url + 'users/me', {
-      method: 'GET',
-      headers: this._authorization
-    })
-    .then(this._checkResponse);
+  getCardsInfo() {
+    return this._request(this._url + "cards", { headers: this._auth });
   }
 
-  editProfileInfo(name, about){
-    return fetch(this._url + 'users/me', {
-      method: 'PATCH',
-      headers: this._authorization,
+  getMyUserInfo() {
+    return this._request(this._url + "users/me", {
+      method: "GET",
+      headers: this._auth,
+    });
+  }
+
+  editProfileInfo(name, about) {
+    return this._request(this._url + "users/me", {
+      method: "PATCH",
+      headers: this._auth,
       body: JSON.stringify({
         name: name,
-        about: about
+        about: about,
       })
     })
-    .then(this._checkResponse);
   }
 
-  addNewCard(name, link){
-    return fetch(this._url + 'cards',{
-      method: 'POST',
-      headers: this._authorization,
+  addNewCard(name, link) {
+    return this._request(this._url + "cards", {
+      method: "POST",
+      headers: this._auth,
       body: JSON.stringify({
         name: name,
-        link: link
+        link: link,
       })
     })
-    .then(this._checkResponse);
   }
 
-  deleteCard(id){
-    return fetch(this._url + 'cards/' + id,{
-      method: 'DELETE',
-      headers: this._authorization
+  deleteCard(id) {
+    return this._request(this._url + "cards/" + id, {
+      method: "DELETE",
+      headers: this._auth
     })
-    .then(this._checkResponse);
   }
 
-  likeThisCard(id){
-    return fetch(this._url + 'cards/' + id + '/likes',{
-      method: 'PUT',
-      headers: this._authorization
+  likeThisCard(id) {
+    return this._request(this._url + "cards/" + id + "/likes", {
+      method: "PUT",
+      headers: this._auth
     })
-    .then(this._checkResponse);
   }
 
-  unLikeThisCard(id){
-    return fetch(this._url + 'cards/' + id + '/likes',{
-      method: 'DELETE',
-      headers: this._authorization
+  unLikeThisCard(id) {
+    return this._request(this._url + "cards/" + id + "/likes", {
+      method: "DELETE",
+      headers: this._auth
     })
-    .then(this._checkResponse);
   }
 
-  updateAvatar(link){
-    return fetch (this._url + 'users/me/avatar',{
-      method: 'PATCH',
-      headers: this._authorization,
+  updateAvatar(link) {
+    return this._request(this._url + "users/me/avatar", {
+      method: "PATCH",
+      headers: this._auth,
       body: JSON.stringify({
-        avatar: link
+        avatar: link,
       })
     })
-    .then(this._checkResponse);
+  }
+
+  registrate(email, password) {
+    return this._request(this._authUrl + "signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        password: `${password}`,
+        email: `${email}`,
+      })
+    })
+  }
+
+  login(email, password) {
+    return this._request(this._authUrl + "signin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        password: password,
+        email: email,
+      })
+    })
+  }
+  checkToken(JWT) {
+    return this._request(this._authUrl + "users/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${JWT}`,
+      }
+    })
   }
   register(email, password){
     return fetch(`https://auth.nomoreparties.co/signup`, {
@@ -117,10 +147,12 @@ class Api{
 }
 
 const api = new Api({
-  baseUrl: 'https://auth.nomoreparties.co/v1/cohort-73/',
-  authorization: {
-    authorization: 'aeff4cf2-7ae0-4790-a6f0-e4391c199a3c',
-    'Content-Type': 'application/json'
-  }})
+  baseUrl: "https://nomoreparties.co/v1/cohort-73/",
+  authUrl: "https://auth.nomoreparties.co/",
+  auth: {
+    authorization: "aeff4cf2-7ae0-4790-a6f0-e4391c199a3c",
+    "Content-Type": "application/json",
+  },
+});
 
-export default api
+export default api;

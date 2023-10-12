@@ -15,16 +15,20 @@ function Register(props) {
     setPassword(e.target.value);
   }
 
-  function handleSubmit(e){
-    e.preventDefault()
+  function handleSubmit(e) {
+    e.preventDefault();
     props.submit(email, password);
   }
 
   return (
     <>
-      <Header button="Войти" />
+      <Header>
+        <Link to="/signin" className="header__button">
+          {"Войти"}
+        </Link>
+      </Header>
       <LogRegForm
-        title="Регеистрация"
+        title="Регистрация"
         submitButtonText="Зарегистрироваться"
         submit={handleSubmit}
       >
@@ -43,8 +47,8 @@ function Register(props) {
           type="password"
         />
       </LogRegForm>
-      <Link to="/sing-in" className="login-registration-form__back-to-login">
-          Уже зарегистрированы? Войти
+      <Link to="/signin" className="login-registration-form__back-to-login">
+        Уже зарегистрированы? Войти
       </Link>
     </>
   );

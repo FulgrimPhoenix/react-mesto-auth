@@ -6,6 +6,7 @@ function Card({onCardClick, card, handleLike, handleDelete}) {
   const isOwn = card.owner._id === context._id;
   const isLiked = card.likes.some((i) => i._id === context._id);
 
+
   function handleClick(){
     onCardClick({ name: card.name, link: card.link })
   }

@@ -1,31 +1,22 @@
 import React from "react";
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import PopupWithForm from "./PopupWithForm";
-import Form from "./Form";
 import Input from "./Input";
+import useForm from "../hooks/useForm";
 
 function EditProfilePopup({ isOpen, onClose, onUpdateUser }) {
   const context = React.useContext(CurrentUserContext);
 
-  const [name, setName] = React.useState(context.name);
-  const [description, setDescription] = React.useState(context.description);
+  const { values, onChange, setValues } =  useForm({['field-name']: context.name, ['field-speciality']: context.about});
 
   React.useEffect(() => {
-    setName(context.name);
-    setDescription(context.about);
+    setValues({['field-name']: context.name, ['field-speciality']: context.about});
   }, [context, isOpen]);
 
-  function handleNameChange(e) {
-    setName(e.target.value);
-  }
-
-  function handleDescriptionChange(e) {
-    setDescription(e.target.value);
-  }
 
   function handleSubmit(e) {
     e.preventDefault();
-    onUpdateUser(name, description);
+    onUpdateUser(values['field-name'], values['field-speciality']);
   }
 
   return (
@@ -39,15 +30,15 @@ function EditProfilePopup({ isOpen, onClose, onUpdateUser }) {
     >
       <Input
         key={"field-name"}
-        value={name}
-        getValue={handleNameChange}
+        value={values['field-name']}
+        getValue={onChange}
         id="field-name"
         placeholder="Введите имя"
       />
       <Input
         key={"field-speciality"}
-        value={description}
-        getValue={handleDescriptionChange}
+        value={values['field-speciality']}
+        getValue={onChange}
         id="field-speciality"
         placeholder="Введите специальность"
       />
